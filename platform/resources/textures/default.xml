@@ -1,0 +1,9 @@
+<assets>
+    <texture id="texture.default" refcount="false" loadtype="sync">
+        <source>platform/resources/textures/dev_white.png</source>
+        <size x="auto" y="auto" />
+        <format internal="RGBA16F" format="RGBA" type="ubyte" />
+        <filter type="bilinear" />
+        <wrap wrap="border" />
+    </texture>
+</assets>

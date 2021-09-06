@@ -1,0 +1,7 @@
+title = "Engine3"
+
+# DEVELOPMENT
+unsafe_event_registry = true  # allow using events without explicitly registering them
+unsafe_event_listening = true # allow setup of event listeners in non-public inner clab sses
+
+unsafe_asset_family_registry = true

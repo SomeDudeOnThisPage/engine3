@@ -1,0 +1,120 @@
+package editor.ui;
+
+import engine3.core.Console;
+import imgui.ImGui;
+import imgui.flag.ImGuiCol;
+import imgui.flag.ImGuiCond;
+import imgui.flag.ImGuiStyleVar;
+import imgui.flag.ImGuiWindowFlags;
+import imgui.type.ImString;
+
+import java.util.AbstractMap;
+
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER;
+
+public class ConsoleWindow extends EditorUI {
+  private final ImString input;
+  private boolean entering = false;
+
+  private int ySizeLast = 0;
+
+  public ConsoleWindow(String title, int flags, ChildPosition position) {
+    super(title, flags, position);
+    this.input = new ImString();
+  }
+
+  @Override
+  public void render() {
+    //if ((Boolean) Console.getConVar("editor_console").get()) {
+    ImGui.setNextWindowSize(500, 250, ImGuiCond.Once);
+    ImGui.begin(this.title, this.flags);
+
+    if (ImGui.beginTabBar("Tabs##TabBar")) {
+      if (ImGui.beginTabItem("Console##Tab")) {
+        // print history
+        ImGui.pushStyleVar(ImGuiStyleVar.FrameBorderSize, 2.0f);
+        ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 4.0f, 1.0f);
+        ImGui.beginChildFrame(ImGui.getID("ConsoleContent"), 0, -25);
+
+        for (AbstractMap.SimpleEntry<String, Console.MessageType> history : Console.history()) {
+          switch (history.getValue()) {
+            case DEFAULT -> ImGui.pushStyleColor(
+                ImGuiCol.Text,
+                Console.COLOR_DEFAULT.x,
+                Console.COLOR_DEFAULT.y,
+                Console.COLOR_DEFAULT.z,
+                1.0f);
+            case ERROR -> ImGui.pushStyleColor(
+                ImGuiCol.Text,
+                Console.COLOR_ERROR.x,
+                Console.COLOR_ERROR.y,
+                Console.COLOR_ERROR.z,
+                1.0f);
+            case WARNING -> ImGui.pushStyleColor(
+                ImGuiCol.Text,
+                Console.COLOR_WARNING.x,
+                Console.COLOR_WARNING.y,
+                Console.COLOR_WARNING.z,
+                1.0f);
+          }
+
+          ImGui.text(history.getKey());
+          ImGui.popStyleColor();
+        }
+
+        if (this.ySizeLast != Console.history().size()) {
+          ImGui.setScrollHereY();
+          this.ySizeLast = Console.history().size();
+        }
+
+        ImGui.popStyleVar(2);
+        ImGui.endChildFrame();
+
+        ImGui.pushStyleVar(ImGuiStyleVar.FramePadding, 1, 1);
+        ImGui.beginChildFrame(ImGui.getID("aaa#aaa"), 0, 0, ImGuiWindowFlags.NoScrollbar);
+        ImGui.popStyleVar();
+
+        ImGui.pushStyleVar(ImGuiStyleVar.FrameBorderSize, 1);
+        ImGui.pushItemWidth(-75f);
+        ImGui.inputText("", this.input);
+        ImGui.popItemWidth();
+
+        ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 1.0f, 0.0f);
+        ImGui.sameLine();
+        ImGui.pushItemWidth(-0.0000001f);
+        if (!entering && (ImGui.button("Submit", 75f, 20.0f) || ImGui.getIO().getKeysDown(GLFW_KEY_ENTER))) {
+          Console.print("] " + this.input.get());
+          Console.parse(this.input.get());
+          this.input.set("");
+          entering = true;
+        } else if (entering && !ImGui.getIO().getKeysDown(GLFW_KEY_ENTER)) {
+          ImGui.button("Submit", 75f, 20.0f); // so yea this is for show
+          entering = false;
+        } else {
+          ImGui.button("Submit", 75f, 20.0f); // so yea this is for show
+        }
+
+        ImGui.popItemWidth();
+
+        ImGui.popStyleVar(2);
+        ImGui.endChildFrame();
+        ImGui.endTabItem();
+      }
+
+      if (ImGui.beginTabItem("Log##Tab")) {
+        // print history
+        ImGui.pushStyleVar(ImGuiStyleVar.FrameBorderSize, 2.0f);
+        ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 4.0f, 1.0f);
+        ImGui.beginChildFrame(ImGui.getID("ConsoleContent"), 0, -25);
+        ImGui.popStyleVar(2);
+        ImGui.endChildFrame();
+        ImGui.endTabItem();
+      }
+
+      ImGui.endTabBar();
+    }
+
+    ImGui.end();
+    //}
+  }
+}

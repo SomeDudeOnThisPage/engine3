@@ -1,0 +1,33 @@
+<assets>
+  <program id="shader.texture2d-diffuse" refcount="false">
+      <vs>dev/flat_color/vertex.vs</vs>
+      <fs>dev/flat_color/fragment.fs</fs>
+  </program>
+
+    <program id="shader.geometry-flat" refcount="false">
+        <vs>dev/deferred/geometry.vs</vs>
+        <fs>dev/deferred/geometry_flat.fs</fs>
+        <output buffer="0" binding="POSITION" />
+        <output buffer="1" binding="NORMAL" />
+        <output buffer="2" binding="ALBEDO" />
+        <output buffer="3" binding="METALLIC_ROUGHNESS_AO_EMISSIVE" />
+    </program>
+
+  <program id="shader.simple_model_red">
+      <vs>dev/simple_model.vs</vs>
+      <fs>dev/solid_color_red.fs</fs>
+  </program>
+
+  <texture id="texture.dev-white">
+      <source>platform/resources/textures/dev_white.png</source>
+      <size   x="auto" y="auto"                          />
+      <format internal="RGBA16F" format="RGBA" type="ubyte" />
+      <filter type="bilinear"                            />
+      <wrap   wrap="border"                              />
+  </texture>
+
+  <material id="material.flat-color.red" archetype="color">
+      <color>255 0 0</color>
+      <specular>0.1</specular>
+  </material>
+</assets>
