@@ -1,7 +1,8 @@
 package engine3.event;
 
-import engine3.Engine3;
+import engine3.Engine4;
 import engine3.event.api.IEvent;
+import engine3.events.GLDebugEvent;
 
 import java.util.*;
 
@@ -34,7 +35,7 @@ public final class EventBus {
   }
 
   public <T extends IEvent> EventSubscription<T> subscribe(Class<T> event, EventSubscription<T> subscription) {
-    if (Engine3.CONFIGURATION.unsafe_event_registry && this.subscriptions.get(event) == null) {
+    if (Engine4.getConfiguration().unsafe_event_registry && this.subscriptions.get(event) == null) {
       this.registerEvent(event);
     }
 
@@ -53,7 +54,7 @@ public final class EventBus {
   }
 
   public void publish(IEvent event) {
-    if (Engine3.CONFIGURATION.unsafe_event_registry && this.subscriptions.get(event.getClass()) == null) {
+    if (Engine4.getConfiguration().unsafe_event_registry && this.subscriptions.get(event.getClass()) == null) {
       this.registerEvent(event.getClass());
     }
 

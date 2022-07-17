@@ -1,4 +1,9 @@
 <assets>
+  <program id="shader.test" refcount="false">
+    <vs>dev/simple_model.vs</vs>
+    <fs>dev/solid_color_red.fs</fs>
+  </program>
+
   <program id="shader.texture2d-diffuse" refcount="false">
       <vs>dev/flat_color/vertex.vs</vs>
       <fs>dev/flat_color/fragment.fs</fs>

@@ -1,6 +1,6 @@
 package engine3.gfx.primitives;
 
-import engine3.Engine3;
+import engine3.Engine4;
 import engine3.asset.Asset;
 import engine3.asset.api.IAssetReference;
 
@@ -13,7 +13,7 @@ public class Model extends Asset {
   @Override
   public void destroy() {
     for (IAssetReference<Mesh> mesh : this.meshes) {
-      Engine3.ASSET_MANAGER.release(mesh);
+      Engine4.getAssetManager().release(mesh);
     }
   }
 
@@ -21,7 +21,7 @@ public class Model extends Asset {
     this.meshes = new ArrayList<>();
 
     for (String mesh : meshes) {
-      this.meshes.add(Engine3.ASSET_MANAGER.request(Mesh.class, mesh));
+      this.meshes.add(Engine4.getAssetManager().request(Mesh.class, mesh));
     }
   }
 }

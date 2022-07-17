@@ -13,6 +13,11 @@ public abstract class Camera extends Entity implements ICamera {
   protected final Vector4i viewport;
 
   @Override
+  public Vector4i getViewportDimensions() {
+    return this.viewport;
+  }
+
+  @Override
   public TransformComponent getTransform() {
     return this.transform;
   }

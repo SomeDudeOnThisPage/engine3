@@ -1,10 +1,9 @@
 package engine3.entity;
 
-import engine3.Engine3;
+import engine3.Engine4;
 import engine3.entity.api.IEntity;
 import engine3.entity.events.ComponentOperationEvent;
 import engine3.events.SceneGraphModificationEvent;
-import engine3.scene.Scene;
 import engine3.util.DeferredArrayList;
 import engine3.util.DeferredHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 @SuppressWarnings("unused")
-public class Entity extends EntityComponentSystemBase implements IEntity {
+public class Entity extends AbstractEventBinding implements IEntity {
   // IEntity
   protected String identifier;
   private final DeferredHashMap<Class<? extends EntityComponent>, EntityComponent> components = new DeferredHashMap<>();
@@ -62,7 +61,7 @@ public class Entity extends EntityComponentSystemBase implements IEntity {
       this.children.add(entity);
     }
 
-    Engine3.EVENT_BUS.publish(new SceneGraphModificationEvent(entity, entity.getParent()));
+    Engine4.getEventBus().publish(new SceneGraphModificationEvent(entity, entity.getParent()));
     ((DeferredArrayList<IEntity>) this.children).update();
   }
 
@@ -97,7 +96,7 @@ public class Entity extends EntityComponentSystemBase implements IEntity {
     component.onComponentAttached(this);
     this.setFlag(Flags.COMPONENT_CHANGE);
 
-    Engine3.EVENT_BUS.publish(new ComponentOperationEvent(ComponentOperationEvent.Type.ADD, this, component));
+    Engine4.getEventBus().publish(new ComponentOperationEvent(ComponentOperationEvent.Type.ADD, this, component));
 
     return this;
   }
@@ -123,7 +122,7 @@ public class Entity extends EntityComponentSystemBase implements IEntity {
       this.components.remove(component);
       this.setFlag(Flags.COMPONENT_CHANGE);
 
-      Engine3.EVENT_BUS.publish(new ComponentOperationEvent(ComponentOperationEvent.Type.REMOVE, this, component));
+      Engine4.getEventBus().publish(new ComponentOperationEvent(ComponentOperationEvent.Type.REMOVE, this, component));
     }
 
     return this;

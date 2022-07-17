@@ -1,6 +1,7 @@
 package engine3.asset;
 
 import engine3.asset.api.IAsset;
+import engine3.asset.api.IAssetFactory;
 import engine3.asset.api.IAssetReference;
 
 public class AssetReference<T extends IAsset> implements IAssetReference<T> {
@@ -8,6 +9,8 @@ public class AssetReference<T extends IAsset> implements IAssetReference<T> {
   private String key;
   private LoadingStage stage;
   private final Class<T> type;
+
+  private IAssetFactory.MetaData meta;
 
   private final boolean counted;
   private int references;
@@ -35,6 +38,16 @@ public class AssetReference<T extends IAsset> implements IAssetReference<T> {
 
   public String getKey() {
     return this.key;
+  }
+
+  @Override
+  public IAssetFactory.MetaData getMetaData() {
+    return this.meta;
+  }
+
+  @Override
+  public void setMetaData(IAssetFactory.MetaData meta) {
+    this.meta = meta;
   }
 
   public Class<T> getType() {

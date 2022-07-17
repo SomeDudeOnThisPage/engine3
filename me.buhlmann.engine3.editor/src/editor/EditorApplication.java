@@ -1,87 +1,133 @@
 package editor;
 
-import editor.imgui.EditorConsole;
+import editor.components.control.CameraControlComponent;
 import editor.imgui.ImGUI;
-import editor.imgui.TestGUI;
 import editor.input.EditorInputManager;
-import editor.scenes.LoadingSceneTree;
-import editor.ui.ConsoleWindow;
-import editor.ui.EditorUI;
-import editor.ui.EditorUIBase;
+import editor.scenes.EditorScene;
 import editor.ui.ViewportWindow;
 import engine3.Application;
-import engine3.Engine3;
+import engine3.Engine4;
+import engine3.api.IApplication;
+import engine3.asset.AssetManager;
+import engine3.gfx.buffer.VertexArray;
+import engine3.gfx.material.Material;
+import engine3.gfx.primitives.Mesh;
+import engine3.gfx.primitives.MeshFactory;
+import engine3.gfx.primitives.Model;
+import engine3.gfx.shader.ShaderProgram;
+import engine3.gfx.shader.ShaderProgramFactory;
+import engine3.gfx.texture.Texture2D;
+import engine3.gfx.texture.TextureFactory;
+import engine3.gfx.uniform.UniformBuffer;
 import engine3.input.IInputManager;
-import engine3.render.deferred.DeferredRenderer;
-import imgui.flag.ImGuiWindowFlags;
+import engine3.render.IRenderer;
+import engine3.render.Renderer;
+import engine3.render.entity.Camera3D;
+import engine3.render.entity.ICamera;
+import engine3.scene.IScene;
+import org.joml.Vector4i;
+import renderer.deferred.DeferredRenderer;
 
+/**
+ * Hooks another application onto its' Lifecycle.
+ */
 public final class EditorApplication extends Application {
+  private final IApplication game;
+
   private IInputManager input;
-  private boolean first = true;
+  private IRenderer renderer;
 
-  private EditorUIBase base;
+  private final ViewportWindow viewport;
 
-  private ViewportWindow viewport;
-  private ConsoleWindow console;
+  private ICamera editorCamera;
+  private boolean playing = false;
 
   @Override
   public void onInit() {
-    this.renderer = new DeferredRenderer();
+    final Renderer renderer = new Renderer();
+    this.renderer = renderer;
 
-    this.scene = new LoadingSceneTree(this.renderer);
+    final AssetManager asm = Engine4.getAssetManager();
+    asm.registerAssetType(ShaderProgram.class, new ShaderProgramFactory());
+    asm.registerAssetType(Texture2D.class, new TextureFactory());
+    asm.registerAssetType(VertexArray.class);
+    asm.registerAssetType(UniformBuffer.class);
+    asm.registerAssetType(Material.class);
+    asm.registerAssetType(Mesh.class, new MeshFactory());
+    asm.registerAssetType(Model.class);
+
+    asm.addAssetManifest("editor/data");
+    asm.loadManifestAssets("editor/data");
+    asm.saveManifestAssets("editor/data");
+
+    this.scene = new EditorScene<>(renderer);
+    renderer.initialize(this.scene.getECS());
+
+    try {
+      this.scene.initialize();
+    } catch (IScene.SceneLifecycleException e) {
+      e.printStackTrace();
+    }
+
     this.input = new EditorInputManager(this);
-    this.input.initialize(Engine3.DISPLAY);
+    this.input.initialize(Engine4.getDisplay());
+    ImGUI.initialize(Engine4.getDisplay().getHandle());
 
-    ImGUI.initialize(Engine3.DISPLAY.getHandle());
-    this.scene.onInit();
+    this.editorCamera = new Camera3D(90.0f, Engine4.getDisplay().getAspectRatio(), 0.1f, 1000.0f,
+        new Vector4i(0, 0, this.viewport.size.x, this.viewport.size.y));
+    this.editorCamera.addComponent(new CameraControlComponent());
+    this.scene.getECS().add(this.editorCamera);
 
-    this.base = new EditorUIBase(0.85f);
-    this.viewport = new ViewportWindow(this.scene, this.renderer, EditorUI.ChildPosition.UP, this.scene.getEntityComponentSystem());
-    this.console = new ConsoleWindow("Console", ImGuiWindowFlags.NoMove, EditorUI.ChildPosition.DOWN);
-
-    this.base.addChild(this.viewport, EditorUI.ChildPosition.UP);
-    this.base.addChild(this.console, EditorUI.ChildPosition.DOWN);
+    this.scene.enter();
   }
 
   @Override
   public void onTick(float ft) {
     ImGUI.preFrame(ft);
-
-    /*if (this.first) {
-      this.first = false;
-      imgui.internal.ImGui.dockBuilderRemoveNode(ImGUI.DOCKSPACE);
-      imgui.internal.ImGui.dockBuilderAddNode(ImGUI.DOCKSPACE, ImGuiDockNodeFlags.DockSpace);
-      imgui.internal.ImGui.dockBuilderSetNodeSize(ImGUI.DOCKSPACE, Engine3.DISPLAY.getSize().x, Engine3.DISPLAY.getSize().y);
-
-      ImInt top = new ImInt();
-      ImInt bottom = new ImInt();
-
-      imgui.internal.ImGui.dockBuilderSplitNode(ImGUI.DOCKSPACE, ImGuiDir.Up, 0.75f, top, bottom);
-      imgui.internal.ImGui.dockBuilderDockWindow("Scene " + this.scene, top.get());
-      imgui.internal.ImGui.dockBuilderDockWindow("Console", bottom.get());
-      imgui.internal.ImGui.dockBuilderFinish(ImGUI.DOCKSPACE);
-    }*/
-
-    this.input.publishFrameInputEvents(Engine3.EVENT_BUS);
-    this.scene.update(ft);
+    this.input.publishFrameInputEvents(Engine4.getEventBus());
+    try {
+      if (Engine4.getInputManager().isKeyPressed(IInputManager.KeyCode.Q)) {
+        this.playing = true;
+        this.scene.update(ft);
+      } else {
+        if (this.playing) {
+          this.playing = false;
+          this.scene.exit();
+          this.scene.enter();
+        }
+        this.scene.getECS().update(ft, EditorTool.class);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
   public void onRender() {
-    // render full scene
-    this.renderer.render(this.scene, this.viewport.getSize(), this.scene.getViewportCamera());
-    //this.sceneViewport.render(this.scene, this.renderer);
+    try {
+      ImGUI.base();
 
-    // render the GUIS (including the scene viewport gui)
-    ImGUI.renderGUIS(this.scene, this.renderer);
+      if (this.playing || this.getInput().isKeyPressed(IInputManager.KeyCode.Q)) {
+        // render with whatever camera the scene should normally render
+        this.scene.render();
+      } else {
+        // force rendering with editor camera
+        this.editorCamera.getProjection().setAspectRatio((float) this.viewport.size.x / (float) this.viewport.size.y);
+        this.editorCamera.setViewportDimensions(new Vector4i(0, 0, this.viewport.size.x, this.viewport.size.y));
+        this.getRenderer().render(this.editorCamera);
+      }
 
-    this.base.render(null);
+      this.viewport.render(this.renderer.getFramebuffer());
 
-    // this.viewport.render(null);
-    // this.console.render(null);
-
-    // render GUIS to screen
+    } catch (IScene.SceneRenderException e) {
+      e.printStackTrace();
+    }
     ImGUI.postFrame();
+  }
+
+  @Override
+  public IRenderer getRenderer() {
+    return new DeferredRenderer();
   }
 
   @Override
@@ -90,10 +136,16 @@ public final class EditorApplication extends Application {
   }
 
   public EditorApplication() {
-    super("editor");
+    super("splash");
+    this.viewport = new ViewportWindow();
+    this.game = null;
   }
 
   public static void main(String[] args) {
-    Engine3.run(EditorApplication.class, args);
+    final Engine4<EditorApplication> engine = new Engine4<>();
+    if (engine.initialize(args)) {
+      engine.setApplication(new EditorApplication());
+      engine.start();
+    }
   }
 }

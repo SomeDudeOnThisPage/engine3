@@ -2,7 +2,7 @@ package editor.imgui;
 
 import engine3.core.Console;
 import engine3.render.IRenderer;
-import engine3.scene.SceneTree;
+import engine3.scene.IScene;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
@@ -38,7 +38,7 @@ public class EditorConsole extends ImGUI
   }
 
   @Override
-  public void render(SceneTree scene, IRenderer renderer) {
+  public void render(IScene scene, IRenderer renderer) {
     //if ((Boolean) Console.getConVar("editor_console").get()) {
       ImGui.setNextWindowSize(500, 250, ImGuiCond.Once);
       ImGui.begin("Console");

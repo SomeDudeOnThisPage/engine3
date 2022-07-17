@@ -22,9 +22,8 @@ in VS_OUT {
 uniform Material_t u_material;
 
 void main() {
-    // gl_FragData[0] = vec4(1.0f);
     POSITION = vec4(i.f_position, 1.0f);
-    NORMAL = vec4(i.v_normal, 1.0f);
+    NORMAL = vec4(normalize(i.v_normal), 1.0f);
     ALBEDO = vec4(u_material.diffuse, 1.0f);
     METALLIC_ROUGHNESS_AO_EMISSIVE = vec4(u_material.metallic, u_material.roughness, u_material.ao, u_material.emissive);
 }

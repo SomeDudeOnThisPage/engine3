@@ -5,19 +5,14 @@ import engine3.entity.EntityComponentSystem;
 import engine3.gfx.OpenGL;
 import engine3.input.IInputManager;
 import engine3.render.IRenderer;
-import engine3.render.IRenderer2;
-import engine3.scene.Scene;
-import engine3.scene.SceneEntity;
-import engine3.scene.SceneTree;
-import org.lwjgl.glfw.GLFW;
+import engine3.scene.IScene;
 
 public abstract class Application implements IApplication {
   protected final String root;
   protected boolean close;
 
-  protected IRenderer renderer;
-
-  protected SceneTree scene;
+  protected IScene<?> scene;
+  protected EntityComponentSystem ecs;
 
   protected int fps;
   protected float ft;
@@ -37,7 +32,7 @@ public abstract class Application implements IApplication {
     double lastFPS = System.currentTimeMillis();
     this.fps = 0;
 
-    while (!Engine3.DISPLAY.shouldClose() && !this.close) {
+    while (!Engine4.getDisplay().shouldClose() && !this.close) {
       try {
         double time = System.currentTimeMillis();
         double ft = time - last;
@@ -47,13 +42,13 @@ public abstract class Application implements IApplication {
           ft = 0.000001;
         }
 
-        Engine3.EVENT_BUS.update();
-        Engine3.DISPLAY.poll();
-        Engine3.ASSET_MANAGER.update();
+        Engine4.getEventBus().update();
+        Engine4.getDisplay().poll();
+        Engine4.getAssetManager().update();
         OpenGL.context().clear();
         this.onTick((float) ft);
         this.onRender();
-        Engine3.DISPLAY.swapBuffers();
+        Engine4.getDisplay().swapBuffers();
 
         last = time;
 
@@ -64,19 +59,21 @@ public abstract class Application implements IApplication {
           lastFPS = System.currentTimeMillis();
         }
 
-        Thread.sleep(1000 / 144);
+        //Thread.sleep(1000 / 512);
       } catch(Exception e) {
-        Engine3.DISPLAY.close();
+        Engine4.getDisplay().close();
         e.printStackTrace();
       }
     }
   }
 
-  public final void destroy() {
+  public void onDestroy() {
   }
 
   public Application(String root) {
     this.root = root;
     this.close = false;
+
+    this.ecs = new EntityComponentSystem();
   }
 }

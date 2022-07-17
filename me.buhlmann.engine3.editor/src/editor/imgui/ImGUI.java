@@ -1,8 +1,8 @@
 package editor.imgui;
 
-import engine3.Engine3;
+import engine3.Engine4;
 import engine3.render.IRenderer;
-import engine3.scene.SceneTree;
+import engine3.scene.IScene;
 import engine3.util.Memory;
 import imgui.*;
 import imgui.callback.ImStrConsumer;
@@ -49,7 +49,7 @@ public abstract class ImGUI {
     }
   }
 
-  public static void renderGUIS(SceneTree scene, IRenderer renderer) {
+  public static void renderGUIS(IScene scene, IRenderer renderer) {
     for (ImGUI gui : ImGUI.guis.values()) {
       gui.render(scene, renderer);
     }
@@ -59,22 +59,22 @@ public abstract class ImGUI {
     }
   }
 
-  public abstract void render(SceneTree scene, IRenderer renderer);
+  public abstract void render(IScene scene, IRenderer renderer);
 
   public static void preFrame(float dt) {
     final ImGuiIO io = ImGui.getIO();
     //io.setConfigDockingAlwaysTabBar(true);
     io.setConfigDockingAlwaysTabBar(true);
     io.setConfigWindowsMoveFromTitleBarOnly(true);
-    ImGui.getMainViewport().seSize(Engine3.DISPLAY.getSize().x, Engine3.DISPLAY.getSize().y);
+    ImGui.getMainViewport().seSize(Engine4.getDisplay().getSize().x, Engine4.getDisplay().getSize().y);
 
     int[] winWidth = new int[1];
     int[] winHeight = new int[1];
     int[] fbWidth = new int[1];
     int[] fbHeight = new int[1];
 
-    glfwGetWindowSize(Engine3.DISPLAY.getHandle(), winWidth, winHeight);
-    glfwGetFramebufferSize(Engine3.DISPLAY.getHandle(), fbWidth, fbHeight);
+    glfwGetWindowSize(Engine4.getDisplay().getHandle(), winWidth, winHeight);
+    glfwGetFramebufferSize(Engine4.getDisplay().getHandle(), fbWidth, fbHeight);
 
     final float scaleX = (float) fbWidth[0] / winWidth[0];
     final float scaleY = (float) fbHeight[0] / winHeight[0];
@@ -82,22 +82,20 @@ public abstract class ImGUI {
     io.setDisplaySize(winWidth[0], winHeight[0]);
     io.setDisplayFramebufferScale(scaleX, scaleY);
 
-    Vector2f position = Engine3.INPUT.getMousePosition();
+    Vector2f position = Engine4.getInputManager().getMousePosition();
 
     io.setMousePos(position.x * scaleX, position.y * scaleY);
     io.setDeltaTime(dt);
 
     // Update the mouse cursor
     final int imguiCursor = ImGui.getMouseCursor();
-    glfwSetCursor(Engine3.DISPLAY.getHandle(), ImGUI.cursors[imguiCursor]);
-    glfwSetInputMode(Engine3.DISPLAY.getHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetCursor(Engine4.getDisplay().getHandle(), ImGUI.cursors[imguiCursor]);
+    glfwSetInputMode(Engine4.getDisplay().getHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     ImGui.newFrame();
     ImGuizmo.beginFrame();
 
-    glViewport(0, 0, Engine3.DISPLAY.getSize().x, Engine3.DISPLAY.getSize().y);
-
-    //ImGUI.base();
+    glViewport(0, 0, Engine4.getDisplay().getSize().x, Engine4.getDisplay().getSize().y);
   }
 
   public static int DOCKSPACE = 0;
@@ -107,7 +105,7 @@ public abstract class ImGUI {
     ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);
     ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0.0f, 0.0f);
 
-    Vector2i size = Engine3.DISPLAY.getSize();
+    Vector2i size = Engine4.getDisplay().getSize();
     ImGui.setNextWindowSize(size.x, size.y, ImGuiCond.Always);
     ImGui.setNextWindowPos(0, 0, ImGuiCond.Once);
     ImGui.setNextWindowBgAlpha(1.0f);
@@ -136,6 +134,26 @@ public abstract class ImGUI {
 
   public static void dispose() {
     ImGui.destroyContext();
+  }
+
+  public static void setMouse(int action, int button) {
+    final ImGuiIO io = ImGui.getIO();
+
+    io.setMouseDown(0, button == GLFW_MOUSE_BUTTON_1 && action != GLFW_RELEASE);
+    io.setMouseDown(1, button == GLFW_MOUSE_BUTTON_2 && action != GLFW_RELEASE);
+    io.setMouseDown(2, button == GLFW_MOUSE_BUTTON_3 && action != GLFW_RELEASE);
+    io.setMouseDown(3, button == GLFW_MOUSE_BUTTON_4 && action != GLFW_RELEASE);
+    io.setMouseDown(4, button == GLFW_MOUSE_BUTTON_5 && action != GLFW_RELEASE);
+
+    if (!io.getWantCaptureMouse() && io.getMouseDown(1)) {
+      ImGui.setWindowFocus(null);
+    }
+
+    if (!ImGui.getIO().getWantCaptureMouse()) {
+
+      // TODO: disable mouse
+      // Input.onMouse(w, button, action, mods);
+    }
   }
 
   public static void initialize(long display) {
@@ -214,7 +232,7 @@ public abstract class ImGUI {
       }
     });
 
-    glfwSetMouseButtonCallback(display, (w, button, action, mods) -> {
+    /*glfwSetMouseButtonCallback(display, (w, button, action, mods) -> {
       io.setMouseDown(0, button == GLFW_MOUSE_BUTTON_1 && action != GLFW_RELEASE);
       io.setMouseDown(1, button == GLFW_MOUSE_BUTTON_2 && action != GLFW_RELEASE);
       io.setMouseDown(2, button == GLFW_MOUSE_BUTTON_3 && action != GLFW_RELEASE);
@@ -226,10 +244,11 @@ public abstract class ImGUI {
       }
 
       if (!ImGui.getIO().getWantCaptureMouse()) {
+
         // TODO: disable mouse
         // Input.onMouse(w, button, action, mods);
       }
-    });
+    });*/
 
     glfwSetScrollCallback(display, (w, xOffset, yOffset) -> {
       io.setMouseWheelH(io.getMouseWheelH() + (float) xOffset);

@@ -13,9 +13,8 @@ out VS_OUT {
 
 void main() {
     vec4 position = u_mat4_projection * u_mat4_view * u_model * vec4(v_position, 1.0f);
-    vec4 normal = u_model * vec4(v_normal, 1.0f);
 
-    o.v_normal = normal.xyz;
+    o.v_normal = /*mat3(transpose(inverse(u_model)))*/ (mat3(u_model) * normalize(v_normal)).xyz;
     o.f_texture = v_texture;
     o.f_position = position.xyz;
     gl_Position = position;

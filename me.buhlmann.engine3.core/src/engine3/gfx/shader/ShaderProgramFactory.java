@@ -2,18 +2,18 @@ package engine3.gfx.shader;
 
 import engine3.asset.AssetReference;
 import engine3.asset.api.IAssetFactory;
+import engine3.asset.api.IAssetReference;
 
 import javax.xml.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ShaderProgramFactory implements IAssetFactory<ShaderProgram> {
+public class ShaderProgramFactory implements IAssetFactory<ShaderProgram, ShaderProgramFactory.Meta> {
   private static final String TAG = "program";
 
   @XmlAccessorType(XmlAccessType.FIELD)
   @XmlRootElement(name = ShaderProgramFactory.TAG)
-  public static final class Meta {
-    @XmlAttribute public String id;
+  public static final class Meta extends MetaData {
     @XmlElement public String vs;
     @XmlElement public String fs;
 
@@ -24,6 +24,12 @@ public class ShaderProgramFactory implements IAssetFactory<ShaderProgram> {
     }
 
     @XmlElement public List<Output> output;
+
+    @Override
+    public void getAssociatedFiles(List<String> files) {
+      files.add(this.vs);
+      files.add(this.fs);
+    }
   }
 
   public String tag() {
@@ -39,7 +45,7 @@ public class ShaderProgramFactory implements IAssetFactory<ShaderProgram> {
     return Meta.class;
   }
 
-  public ShaderProgram load(Object obj) {
+  public ShaderProgram loadAssetSynchronous(Object obj) {
     Meta meta = (Meta) obj;
 
     // todo: why the fuck is this here and not somewhere in the global config???
@@ -58,16 +64,20 @@ public class ShaderProgramFactory implements IAssetFactory<ShaderProgram> {
       shaders.add(new Shader(Shader.ShaderType.FRAGMENT_SHADER, ShaderUtil.buildShaderSource(meta.fs, config)));
     }
 
-    if (meta.output == null) {
+    if (meta.output != null) {
+      final ShaderProgram.ShaderIO[] io = new ShaderProgram.ShaderIO[meta.output.size()];
+      for (int i = 0; i < meta.output.size(); i++) {
+        Meta.Output output = meta.output.get(i);
+        io[i] = new ShaderProgram.FragmentShaderOutput(output.buffer, output.binding);
+      }
+      return new ShaderProgram(shaders, io);
+    } else {
       return new ShaderProgram(shaders);
     }
+  }
 
-    final ShaderProgram.ShaderIO[] io = new ShaderProgram.ShaderIO[meta.output.size()];
-    for (int i = 0; i < meta.output.size(); i++) {
-      Meta.Output output = meta.output.get(i);
-      io[i] = new ShaderProgram.FragmentShaderOutput(output.buffer, output.binding);
-    }
+  @Override
+  public void load(Meta meta, IAssetReference<ShaderProgram> reference) {
 
-    return new ShaderProgram(shaders, io);
   }
 }

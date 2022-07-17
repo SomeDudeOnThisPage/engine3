@@ -1,0 +1,5 @@
+[game]
+    title = "game0"
+    manifest = [
+        "data.bin"
+    ]

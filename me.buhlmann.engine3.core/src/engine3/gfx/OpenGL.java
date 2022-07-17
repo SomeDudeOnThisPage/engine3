@@ -1,6 +1,6 @@
 package engine3.gfx;
 
-import engine3.Engine3;
+import engine3.Engine4;
 import engine3.gfx.buffer.Buffer;
 import engine3.gfx.buffer.VertexArray;
 import engine3.events.GLDebugEvent;
@@ -43,7 +43,7 @@ public class OpenGL {
     private final Vector2i viewport;
 
     public Context clear() {
-      Engine3.EVENT_BUS.publish(new GLDebugEvent("glClear", new String[] {
+      Engine4.getEventBus().publish(new GLDebugEvent("glClear", new String[] {
           Integer.toString(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
       }));
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -79,7 +79,7 @@ public class OpenGL {
 
     public Context attribute(int index, boolean state) {
       if (!this.attributes.contains(index) && state) {
-        Engine3.EVENT_BUS.publish(new GLDebugEvent("glEnableVertexAttribArray", new String[] { Integer.toString(index) }));
+        Engine4.getEventBus().publish(new GLDebugEvent("glEnableVertexAttribArray", new String[] { Integer.toString(index) }));
         glEnableVertexAttribArray(index);
         this.attributes.add(index);
       }
@@ -156,7 +156,7 @@ public class OpenGL {
     public Context framebuffer(FrameBuffer buffer) {
       if (buffer == null) {
         glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-        GL45C.glViewport(0, 0, Engine3.DISPLAY.getSize().x, Engine3.DISPLAY.getSize().y);
+        GL45C.glViewport(0, 0, Engine4.getDisplay().getSize().x, Engine4.getDisplay().getSize().y);
         this.framebuffer = null;
       } else {
         if (this.framebuffer == null || this.framebuffer.id() != buffer.id()) {

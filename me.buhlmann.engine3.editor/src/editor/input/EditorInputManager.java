@@ -1,7 +1,8 @@
 package editor.input;
 
 import editor.EditorApplication;
-import engine3.Engine3;
+import editor.imgui.ImGUI;
+import engine3.Engine4;
 import engine3.event.EventBus;
 import engine3.events.CursorMovementInputEvent;
 import engine3.input.IInputManager;
@@ -26,9 +27,21 @@ public class EditorInputManager implements IInputManager {
   private final Vector2i last;
   private final Vector2i now;
 
+  private boolean m1;
+
   @Override
   public void initialize(GLFWWindow window) {
     glfwSetCursorPosCallback(window.getHandle(), (handle, x, y) -> this.now.set((int) x, (int) y));
+
+    glfwSetMouseButtonCallback(window.getHandle(), (handle, button, action, mods) -> {
+      if (button == 1 && action == GLFW_PRESS) {
+        this.m1 = true;
+      } else if (button == 1 && action == GLFW_RELEASE) {
+        this.m1 = false;
+      }
+
+      ImGUI.setMouse(action, button);
+    });
 
     glfwSetKeyCallback(window.getHandle(), (handle, key, scancode, action, mods) -> {
       if (this.state.getOrDefault(key, -1) != action) {
@@ -72,9 +85,14 @@ public class EditorInputManager implements IInputManager {
   public final Vector2f getMousePosition() {
     double[] x = new double[1];
     double[] y = new double[1];
-    glfwGetCursorPos(Engine3.DISPLAY.getHandle(), x, y);
+    glfwGetCursorPos(Engine4.getDisplay().getHandle(), x, y);
 
     return new Vector2f((float) x[0], (float) y[0]);
+  }
+
+  @Override
+  public boolean isMouseButton1Pressed() {
+    return this.m1;
   }
 
   public EditorInputManager(EditorApplication application) {
@@ -82,5 +100,7 @@ public class EditorInputManager implements IInputManager {
     this.now = new Vector2i();
     this.state = new HashMap<>();
     this.application = application;
+
+    this.m1 = false;
   }
 }

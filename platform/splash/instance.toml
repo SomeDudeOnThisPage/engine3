@@ -1,1 +1,2 @@
-sGameHook = "me.buhlmann.engine3.editor.editor.EditorApplication"
+s_game_module = "stickmanners"
+s_game_hook = "stickmanners.Game"

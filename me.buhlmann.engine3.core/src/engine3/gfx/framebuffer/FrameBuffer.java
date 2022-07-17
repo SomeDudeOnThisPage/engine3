@@ -1,5 +1,6 @@
 package engine3.gfx.framebuffer;
 
+import engine3.Engine4;
 import engine3.asset.AssetBindable;
 import engine3.asset.api.ISyncedInitialization;
 import engine3.core.IFlags;
@@ -59,9 +60,11 @@ public class FrameBuffer extends AssetBindable implements Buffer, ISyncedInitial
 
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-      System.out.println("SUCCESS ATTACHING DEPTH TEXTURE");
+      Engine4.getLogger().trace("attached depth texture to framebuffer object");
     } else {
-      System.err.println("FAILURE ATTACHING DEPTH TEXTURE " + glGetError());
+      Engine4.getLogger().error("failed to attach depth texture to framebuffer object - " + glGetError());
+      this.destroy();
+      return;
     }
 
     this.depthAttachment = texture;
@@ -87,9 +90,11 @@ public class FrameBuffer extends AssetBindable implements Buffer, ISyncedInitial
     );
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-      System.out.println("SUCCESS ATTACHING TEXTURE");
+      Engine4.getLogger().trace("attached depth texture to framebuffer object");
     } else {
-      System.err.println("FAILURE ATTACHING TEXTURE " + glGetError());
+      Engine4.getLogger().error("failed to attach texture to framebuffer object - " + glGetError());
+      this.destroy();
+      return;
     }
 
     this.textures.put(attachment, texture);
@@ -124,7 +129,6 @@ public class FrameBuffer extends AssetBindable implements Buffer, ISyncedInitial
       int i = 0;
       for (FrameBufferSpecification.TextureSpecification format : this.specification.getBufferSpecifications()) {
         if (format instanceof FrameBufferSpecification.DepthTextureSpecification) {
-          System.out.println("IS DEPTH TEXTURE");
           this.addDepthTexture(format);
         } else {
           this.addColorTexture(format, i++);
@@ -139,6 +143,10 @@ public class FrameBuffer extends AssetBindable implements Buffer, ISyncedInitial
     }
 
     this.textures.clear();
+
+    if (this.depthAttachment != null) {
+      this.depthAttachment.destroy();
+    }
   }
 
   @Override
@@ -158,7 +166,6 @@ public class FrameBuffer extends AssetBindable implements Buffer, ISyncedInitial
     int i = 0;
     for (FrameBufferSpecification.TextureSpecification format : this.specification.getBufferSpecifications()) {
       if (format instanceof FrameBufferSpecification.DepthTextureSpecification) {
-        System.out.println("IS DEPTH TEXTURE");
         this.addDepthTexture(format);
       } else {
         this.addColorTexture(format, i++);

@@ -1,21 +1,22 @@
 package engine3.asset;
 
 import engine3.asset.api.IAsset;
+import engine3.asset.api.IAssetReference;
 import org.w3c.dom.Node;
 
 public class AssetLoadTask<T extends IAsset> {
-  private final Node data;
-  private final AssetReference<T> reference;
+  private final Object data;
+  private final IAssetReference<T> reference;
 
-  public Node getData() {
+  public Object getData() {
     return this.data;
   }
 
-  public AssetReference<T> getReference() {
+  public IAssetReference<T> getReference() {
     return this.reference;
   }
 
-  public AssetLoadTask(Node data, AssetReference<T> reference) {
+  public AssetLoadTask(Object data, IAssetReference<T> reference) {
     this.data = data;
     this.reference = reference;
   }

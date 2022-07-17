@@ -3,6 +3,7 @@ package engine3.entity.component;
 import engine3.entity.EntityComponent;
 import org.joml.*;
 
+@SuppressWarnings("unused")
 public class TransformComponent extends EntityComponent {
   public Vector3f position;
   // public Vector3f rotation;
@@ -20,8 +21,8 @@ public class TransformComponent extends EntityComponent {
 
   public Matrix4f getTransformMatrix() {
     return this.transform.identity()
-        .translate(this.position)
         .rotate(this.rotation)
+        .translate(this.position)
         .scale(this.scale);
   }
 

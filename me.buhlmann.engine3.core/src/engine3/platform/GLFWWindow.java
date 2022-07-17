@@ -1,9 +1,8 @@
 package engine3.platform;
 
-import engine3.Engine3;
+import engine3.Engine4;
+import engine3.events.DisplayEvent;
 import org.joml.Vector2i;
-import org.lwjgl.glfw.GLFWWindowSizeCallbackI;
-import org.lwjgl.opengl.GL;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
@@ -55,15 +54,21 @@ public final class GLFWWindow {
 
     this.size = size;
     this.state = WindowState.WINDOWED;
-    this.vsync = Engine3.CONFIGURATION.vsync ? VSyncState.ENABLED : VSyncState.DISABLED;
+    this.vsync = VSyncState.DISABLED; // Engine3.CONFIGURATION.vsync ? VSyncState.ENABLED : VSyncState.DISABLED;
 
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     glfwWindowHint(GLFW_SAMPLES, 8);
-    this.handle = glfwCreateWindow(this.size.x, this.size.y, Engine3.CONFIGURATION.title, NULL, NULL);
+    this.handle = glfwCreateWindow(this.size.x, this.size.y, "Test", NULL, NULL);
 
-    glfwSetWindowSizeCallback(this.handle, (handle, x, y) -> this.size.set(x, y));
+    glfwSetWindowSizeCallback(this.handle, (handle, x, y) -> {
+      this.size.set(x, y);
+    });
+
+    glfwSetFramebufferSizeCallback(this.handle, (handle, x, y) -> {
+      Engine4.getEventBus().publish(new DisplayEvent());
+    });
 
     glfwMakeContextCurrent(this.handle);
     glfwSwapInterval(this.vsync.getValue());

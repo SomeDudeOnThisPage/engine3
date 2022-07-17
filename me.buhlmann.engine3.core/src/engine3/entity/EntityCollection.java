@@ -6,7 +6,7 @@ import engine3.entity.api.IEntityCollection;
 import java.util.Collection;
 import java.util.HashSet;
 
-public abstract class EntityCollection extends EntityComponentSystemBase implements IEntityCollection {
+public abstract class EntityCollection extends AbstractEventBinding implements IEntityCollection {
 
   protected final HashSet<IEntity> entities;
 

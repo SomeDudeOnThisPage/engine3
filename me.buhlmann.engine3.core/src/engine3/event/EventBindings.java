@@ -1,6 +1,6 @@
 package engine3.event;
 
-import engine3.Engine3;
+import engine3.Engine4;
 import engine3.event.api.IEvent;
 
 import java.lang.reflect.InvocationTargetException;
@@ -36,7 +36,7 @@ public interface EventBindings {
   static void unregister(EventBindings object) {
     final List<CompositeEventSubscription> subscriptions = object.getSubscriptions();
     for (CompositeEventSubscription subscription : subscriptions) {
-      Engine3.EVENT_BUS.unsubscribe((Class<? extends IEvent>) subscription.clazz, subscription.subscription);
+      Engine4.getEventBus().unsubscribe((Class<? extends IEvent>) subscription.clazz, subscription.subscription);
     }
   }
 
@@ -50,7 +50,7 @@ public interface EventBindings {
 
     // iterate all methods of the class, and check for event listeners
     for (Method method : clazz.getMethods()) {
-      if (Engine3.CONFIGURATION.unsafe_event_listening) {
+      if (Engine4.getConfiguration().unsafe_event_listening) {
         method.setAccessible(true);
       }
 
@@ -59,7 +59,7 @@ public interface EventBindings {
         Class<? extends IEvent> event = listener.value();
 
         // create event subscription that calls the annotated method
-        final EventSubscription<? extends IEvent> subscription = Engine3.EVENT_BUS.subscribe(event, (e) -> {
+        final EventSubscription<? extends IEvent> subscription = Engine4.getEventBus().subscribe(event, (e) -> {
           try {
             method.invoke(object, e);
           } catch (IllegalAccessException exception) {

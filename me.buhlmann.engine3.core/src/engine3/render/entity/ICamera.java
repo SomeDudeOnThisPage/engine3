@@ -9,4 +9,5 @@ public interface ICamera extends IEntity {
   TransformComponent getTransform();
   ProjectionComponent getProjection();
   void setViewportDimensions(Vector4i viewport);
+  Vector4i getViewportDimensions();
 }

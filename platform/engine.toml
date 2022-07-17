@@ -5,3 +5,4 @@ unsafe_event_registry = true  # allow using events without explicitly registerin
 unsafe_event_listening = true # allow setup of event listeners in non-public inner clab sses
 
 unsafe_asset_family_registry = true
+vsync = true

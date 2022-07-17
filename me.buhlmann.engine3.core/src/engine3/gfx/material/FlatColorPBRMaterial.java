@@ -23,7 +23,7 @@ public class FlatColorPBRMaterial extends Material {
   }
 
   public FlatColorPBRMaterial(Vector3f color, float roughness, float metallic, float ao, float emissive) {
-    super("shader.geometry-flat");
+    super("shader.test");
     this.color = color;
     this.roughness = roughness;
     this.metallic = metallic;

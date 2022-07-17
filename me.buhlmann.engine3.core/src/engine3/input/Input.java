@@ -1,6 +1,6 @@
 package engine3.input;
 
-import engine3.Engine3;
+import engine3.Engine4;
 import engine3.event.EventBus;
 import engine3.events.CursorMovementInputEvent;
 import engine3.platform.GLFWWindow;
@@ -49,9 +49,14 @@ public class Input implements IInputManager {
   public final Vector2f getMousePosition() {
     double[] x = new double[1];
     double[] y = new double[1];
-    glfwGetCursorPos(Engine3.DISPLAY.getHandle(), x, y);
+    glfwGetCursorPos(Engine4.getDisplay().getHandle(), x, y);
 
     return new Vector2f((float) x[0], (float) y[0]);
+  }
+
+  @Override
+  public boolean isMouseButton1Pressed() {
+    return false;
   }
 
   public Input() {

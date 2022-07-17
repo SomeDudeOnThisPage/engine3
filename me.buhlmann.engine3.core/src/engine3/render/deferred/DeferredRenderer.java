@@ -11,16 +11,13 @@ import engine3.gfx.uniform.BufferedUniform;
 import engine3.gfx.uniform.UniformBuffer;
 import engine3.render.IRenderer;
 import engine3.render.entity.ICamera;
-import engine3.scene.Scene;
 import engine3.scene.SceneTree;
 import org.joml.Matrix4f;
-import org.joml.Vector2d;
 import org.joml.Vector2i;
 import org.joml.Vector4i;
 import org.lwjgl.opengl.GL45C;
 
-import static org.lwjgl.opengl.GL11C.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11C.*;
 
 public final class DeferredRenderer implements IRenderer, IDestructible {
   private final UniformBuffer ubo;
@@ -47,6 +44,9 @@ public final class DeferredRenderer implements IRenderer, IDestructible {
 
   @Override
   public void render(SceneTree scene, Vector2i viewport, ICamera camera) {
+    glEnable(GL_DEPTH_TEST);
+    glCullFace(GL_BACK);
+
     int qstart = GL45C.glGenQueries();
     int qstop = GL45C.glGenQueries();
     GL45C.glQueryCounter(qstart, GL45C.GL_TIMESTAMP);

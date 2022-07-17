@@ -1,6 +1,6 @@
 package editor.ui;
 
-import engine3.Engine3;
+import engine3.Engine4;
 import imgui.ImGui;
 import imgui.flag.*;
 import org.joml.Vector2i;
@@ -27,7 +27,7 @@ public class EditorUIBase extends EditorUI {
     int node = this.BASE;
     imgui.internal.ImGui.dockBuilderRemoveNode(node);
     imgui.internal.ImGui.dockBuilderAddNode(node, imgui.internal.flag.ImGuiDockNodeFlags.DockSpace);
-    imgui.internal.ImGui.dockBuilderSetNodeSize(node, Engine3.DISPLAY.getSize().x, Engine3.DISPLAY.getSize().y);
+    //imgui.internal.ImGui.dockBuilderSetNodeSize(node, Engine3.DISPLAY.getSize().x, Engine3.DISPLAY.getSize().y);
 
     // split based on children
     if (Arrays.stream(this.children).anyMatch(Objects::nonNull)) {
@@ -49,7 +49,7 @@ public class EditorUIBase extends EditorUI {
     ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);
     ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0.0f, 0.0f);
 
-    Vector2i size = Engine3.DISPLAY.getSize();
+    Vector2i size = Engine4.getDisplay().getSize();
     ImGui.setNextWindowSize(size.x, size.y, ImGuiCond.Always);
     ImGui.setNextWindowPos(0, 0, ImGuiCond.Once);
     ImGui.setNextWindowBgAlpha(1.0f);

@@ -1,23 +1,37 @@
 package engine3.gfx.primitives;
 
-import engine3.Engine3;
 import engine3.asset.Asset;
-import engine3.asset.api.IAssetReference;
+import engine3.asset.api.ISyncedInitialization;
+import engine3.asset.loading.Assimp;
 import engine3.gfx.buffer.VertexArray;
-import engine3.gfx.material.Material;
+import org.lwjgl.assimp.AIMesh;
 
-public class Mesh extends Asset {
-  public IAssetReference<VertexArray> vao;
-  public IAssetReference<Material> material;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Mesh extends Asset implements ISyncedInitialization {
+  public List<VertexArray> vao;
+  private List<AIMesh> meshdata;
 
   @Override
   public void destroy() {
-    Engine3.ASSET_MANAGER.release(this.vao);
-    Engine3.ASSET_MANAGER.release(this.material);
+    // Engine4.getAssetManager().release(this.vao);
+    // Engine4.getAssetManager().release(this.material);
   }
 
-  public Mesh(String vao, String material) {
-    this.vao = Engine3.ASSET_MANAGER.request(VertexArray.class, vao);
-    this.material = Engine3.ASSET_MANAGER.request(Material.class, material);
+  public Mesh(List<AIMesh> meshdata) {
+    this.vao = new ArrayList<>();
+    this.meshdata = meshdata;
+  }
+
+  @Override
+  public boolean initialize() {
+    for (AIMesh meshdata : this.meshdata) {
+      VertexArray vao = Assimp.processMesh(meshdata);
+      this.vao.add(vao);
+      meshdata.free();
+    }
+    this.meshdata = null;
+    return true;
   }
 }

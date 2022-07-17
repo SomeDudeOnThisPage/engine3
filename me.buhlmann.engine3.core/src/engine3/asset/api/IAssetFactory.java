@@ -3,7 +3,20 @@ package engine3.asset.api;
 import engine3.asset.Asset;
 import engine3.asset.AssetReference;
 
-public interface IAssetFactory<T extends IAsset> {
+import javax.xml.bind.annotation.XmlAttribute;
+import java.util.List;
+
+public interface IAssetFactory<T extends IAsset, M extends IAssetFactory.MetaData> {
+  abstract class MetaData {
+    @XmlAttribute public String id;
+    @XmlAttribute public String initialization;
+
+    public String getInitialization() {
+      return this.initialization.isEmpty() ? "async" : "sync";
+    }
+    public abstract void getAssociatedFiles(final List<String> files);
+  }
+
   /**
    * Should return the XML-Tag this factory should handle.
    *
@@ -33,5 +46,10 @@ public interface IAssetFactory<T extends IAsset> {
    * @param data Mapped XML-Data-Object of type retrieved from {@link IAssetFactory#getXMLDataClass()}
    * @return Asset (which may be not yet initialized via context)
    */
-  T load(Object data);
+   T loadAssetSynchronous(Object data);
+
+  /**
+   * Instantiate asset data synchronously.
+   */
+   void load(M meta, IAssetReference<T> reference);
 }

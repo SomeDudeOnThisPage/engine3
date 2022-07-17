@@ -1,26 +1,47 @@
 package editor.ui;
 
-import engine3.entity.EntityCollection;
-import engine3.entity.EntityComponentSystem;
-import engine3.entity.api.IEntity;
-import engine3.entity.api.IEntityComponent;
-import engine3.entity.component.TransformComponent;
+import engine3.gfx.framebuffer.FrameBuffer;
 import engine3.gfx.texture.Texture2D;
-import engine3.render.IRenderer;
-import engine3.render.deferred.DeferredRenderer;
-import engine3.render.entity.ICamera;
-import engine3.scene.SceneTree;
 import imgui.ImGui;
-import imgui.extension.imguizmo.ImGuizmo;
-import imgui.extension.imguizmo.flag.Mode;
-import imgui.extension.imguizmo.flag.Operation;
-import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiWindowFlags;
-import org.joml.Matrix4f;
 import org.joml.Vector2i;
 
-public class ViewportWindow extends EditorUI {
+public final class ViewportWindow {
+  public Vector2i size;
+
+  public void render(final FrameBuffer fbo) {
+    Texture2D texture = fbo.getColorTexture(0);
+    if (texture == null) {
+      return;
+    }
+
+    ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0.0f, 0.0f);
+    ImGui.setNextWindowBgAlpha(0.0f);
+    int flags = ImGuiWindowFlags.NoCollapse |
+        ImGuiWindowFlags.NoScrollWithMouse |
+        ImGuiWindowFlags.NoScrollbar;
+    ImGui.setNextWindowSize(800, 600);
+    ImGui.begin("Editor", flags);
+
+    float x = ImGui.getWindowWidth();
+    float y = ImGui.getWindowHeight();
+
+    ImGui.beginChild("s", x, y);
+    ImGui.image(texture.id(), x, y, /* flip vertical uv coordinates */ 0, 1, 1, 0);
+    ImGui.endChild();
+
+    this.size.set((int) ImGui.getWindowSizeX(), (int) ImGui.getWindowSizeY());
+    ImGui.end();
+    ImGui.popStyleVar();
+  }
+
+  public ViewportWindow() {
+    this.size = new Vector2i(800, 600);
+  }
+}
+
+/*public class ViewportWindow extends EditorUI {
   private final EntityCollection transforms = new EntityCollection() {
     @Override
     public <T extends IEntityComponent> Class<T>[] components() {
@@ -53,11 +74,12 @@ public class ViewportWindow extends EditorUI {
   }
 
   private int guizmoMode = 0;
+  private int imageMode = 0;
 
   @Override
   public void render() {
     // render framebuffer texture
-    Texture2D texture = renderer.getGBuffer().getColorTexture(0);
+    Texture2D texture = renderer.getGBuffer().getColorTexture(this.imageMode);
 
     if (texture == null) return;
 
@@ -83,7 +105,7 @@ public class ViewportWindow extends EditorUI {
     ImGuizmo.setOrthographic(false);
     ImGuizmo.setEnabled(this.focused);
     ImGuizmo.setDrawList();
-    ImGui.image(texture.id(), sx, sy, /* flip vertical uv coordinates */ 0, 1, 1, 0);
+    ImGui.image(texture.id(), sx, sy, /* flip vertical uv coordinates  0, 1, 1, 0);
 
     float windowWidth = ImGui.getWindowWidth();
     float windowHeight = ImGui.getWindowHeight();
@@ -94,7 +116,7 @@ public class ViewportWindow extends EditorUI {
     float[] projection = camera.getProjection().getProjectionMatrix().get(new float[16]);
     float[] identity = new Matrix4f().identity().get(new float[16]);
 
-    ImGuizmo.drawGrid(view, projection, identity, 100);
+    // ImGuizmo.drawGrid(view, projection, identity, 100);
     ImGuizmo.setId(0);
 
     float viewManipulateRight = ImGui.getWindowPosX() + windowWidth;
@@ -137,6 +159,10 @@ public class ViewportWindow extends EditorUI {
       this.guizmoMode = (this.guizmoMode + 1) % 4;
     }
 
+    if (ImGui.button("Texture Switch")) {
+      this.imageMode = (this.imageMode + 1) % 4;
+    }
+
     ImGui.endChild();
     //}
 
@@ -145,4 +171,4 @@ public class ViewportWindow extends EditorUI {
     ImGui.end();
     ImGui.popStyleVar(1);
   }
-}
+}*/

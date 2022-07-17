@@ -21,11 +21,12 @@ public interface IAssetReference<T extends IAsset> extends IReferenceCounted {
   void setKey(String key);
   String getKey();
 
+  IAssetFactory.MetaData getMetaData();
+  void setMetaData(IAssetFactory.MetaData meta);
+
   /**
    * Returns the {@link Class<T> type} of the contained {@link IAsset Asset}.
    * @return The {@link Class<T> type} of the contained {@link IAsset Asset}.
    */
   Class<T> getType();
-
-
 }

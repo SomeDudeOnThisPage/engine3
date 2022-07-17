@@ -160,7 +160,7 @@ public final class Assimp {
     return vao;
   }
 
-  public static VertexArray load(String path) {
+  public static List<AIMesh> load(String path) {
     AIScene scene = aiImportFile(path, aiProcess_ImproveCacheLocality |
         aiProcess_JoinIdenticalVertices |
         aiProcess_Triangulate |
@@ -172,22 +172,14 @@ public final class Assimp {
 
     int numMeshes = scene.mNumMeshes();
     PointerBuffer aiMeshes = scene.mMeshes();
+    final List<AIMesh> meshes = new LinkedList<>();
 
     for (int i = 0; i < numMeshes; i++) {
       assert aiMeshes != null;
 
       AIMesh aiMesh = AIMesh.create(aiMeshes.get(i));
-      VertexArray mesh = processMesh(aiMesh);
-
-      AIString aiName = aiMesh.mName();
-      aiMesh.mName(aiName);
-
-      byte[] s = new byte[(int) aiName.length()];
-      aiName.data().get(s);
-
-      // todo: more meshes
-      return mesh;
+      meshes.add(aiMesh);
     }
-    return null;
+    return meshes;
   }
 }

@@ -1,12 +1,12 @@
 package engine3.entity;
 
-import engine3.Engine3;
+import engine3.Engine4;
 import engine3.entity.api.*;
 import engine3.entity.events.ComponentOperationEvent;
 import engine3.event.EventBindings;
 import engine3.events.SceneGraphModificationEvent;
-import engine3.render.IRenderer;
 
+import java.lang.annotation.Annotation;
 import java.util.*;
 
 @SuppressWarnings("unused")
@@ -14,7 +14,6 @@ public class EntityComponentSystem {
   private final Map<String, IEntity> entities;
   private final Map<Class<? extends IEntityCollection>, IEntityCollection> collections;
   private final Map<IEntitySystem.SystemPriority, List<IEntitySystem>> systems;
-  private final Map<IRenderer.Stage, List<IRenderSystem<?>>> renderers;
   private final Set<IEntityScript> scripts;
   private final Queue<Operation> operations;
 
@@ -30,7 +29,7 @@ public class EntityComponentSystem {
       }
 
       if (hasRequired) {
-        System.out.println("added entity '" + entity.getIdentifier() + "' to collection '"  + collection + "'");
+        Engine4.getLogger().info("[ECS] added entity '" + entity.getIdentifier() + "' to collection '"  + collection + "'");
         collection.addEntity(entity);
       } else {
         collection.removeEntity(entity);
@@ -39,15 +38,10 @@ public class EntityComponentSystem {
   }
 
   private void addCollection(IEntityCollection collection) {
-    System.err.println("ADDING COLLECTION");
     this.collections.put(collection.getClass(), collection);
 
     if (collection instanceof IEntitySystem) {
       this.systems.get(((IEntitySystem) collection).priority()).add((IEntitySystem) collection);
-    }
-
-    if (collection instanceof IRenderSystem<?>) {
-      this.renderers.get(((IRenderSystem<?>) collection).stage()).add((IRenderSystem<?>) collection);
     }
 
     // map all entities to this collection
@@ -63,10 +57,6 @@ public class EntityComponentSystem {
 
     if (collection instanceof IEntitySystem) {
       this.systems.get(((IEntitySystem) collection).priority()).remove(collection);
-    }
-
-    if (collection instanceof IRenderSystem) {
-      this.systems.get(((IRenderSystem) collection).stage()).remove(collection);
     }
 
     EventBindings.unregister(collection);
@@ -96,12 +86,16 @@ public class EntityComponentSystem {
       case REMOVE -> {
         this.entities.remove(entity.getIdentifier());
 
+        for (IEntityCollection collection : this.collections.values()) {
+          collection.removeEntity(entity);
+        }
+
         if (entity instanceof EventBindings) {
           EventBindings.unregister((EventBindings) entity);
         }
       }
       case MAP -> {
-        System.out.println("(re-)mapping entity '" + entity.getIdentifier() + "'");
+        Engine4.getLogger().trace("[ECS] (re-)mapping entity '" + entity.getIdentifier() + "'");
 
         if (entity instanceof Entity) {
           ((Entity) entity).update();
@@ -114,11 +108,17 @@ public class EntityComponentSystem {
     }
   }
 
+  public void clear() {
+    for (IEntity entity : this.entities.values()) {
+      this.remove(entity);
+    }
+  }
+
   public <T extends IEntityCollection> void add(T collection) {
     this.operations.add(new Operation.OnCollection(collection, Operation.Type.ADD));
   }
 
-  public <T extends EntityCollection> void remove(T collection) {
+  public <T extends IEntityCollection> void remove(T collection) {
     this.operations.add(new Operation.OnCollection(collection, Operation.Type.REMOVE));
   }
 
@@ -143,9 +143,10 @@ public class EntityComponentSystem {
     return null;
   }
 
-  public void update(float dt) {
+  public void update(float dt, Class<? extends Annotation> annotated) {
     while (!this.operations.isEmpty()) {
       final Operation operation = this.operations.poll();
+      Engine4.getLogger().trace("[ECS] performing operation '" + operation.getClass().getSimpleName() + "'");
       if (Operation.OnEntity.class == operation.getClass()) {
         this.handleEntityOperation((Operation.OnEntity) operation);
       } else if (Operation.OnCollection.class == operation.getClass()) {
@@ -155,22 +156,15 @@ public class EntityComponentSystem {
 
     for (IEntitySystem.SystemPriority priority : this.systems.keySet()) {
       for (IEntitySystem system : this.systems.get(priority)) {
-        system.update(dt);
+        if (annotated == null || system.getClass().isAnnotationPresent(annotated)) {
+          system.update(dt);
+        }
       }
     }
 
     for (IEntityScript script : this.scripts) {
-      script.update(dt);
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  public <T extends IRenderer> void updateRenderStage(IRenderer.Stage stage, T renderer) {
-    for (IRenderSystem<?> system : this.renderers.get(stage)) {
-      try {
-        ((IRenderSystem<T>) system).render(renderer);
-      } catch(ClassCastException e) {
-        // todo: notify user
+      if (annotated == null || script.getClass().isAnnotationPresent(annotated)) {
+          script.update(dt);
       }
     }
   }
@@ -186,13 +180,8 @@ public class EntityComponentSystem {
       this.systems.put(priority, new ArrayList<>());
     }
 
-    this.renderers = new HashMap<>();
-    for (IRenderer.Stage stage : IRenderer.Stage.values()) {
-      this.renderers.put(stage, new ArrayList<>());
-    }
-
     // fired when entity component set is changed
-    Engine3.EVENT_BUS.subscribe(ComponentOperationEvent.class, (event) -> {
+    Engine4.getEventBus().subscribe(ComponentOperationEvent.class, (event) -> {
       // todo: this may result in ccmodexceptions!
       if (event.component instanceof IEntityScript script) {
         script.setEntity(event.entity);
@@ -208,7 +197,7 @@ public class EntityComponentSystem {
     });
 
     // fired when entity is added as child (indirect addition to ecs via scenegraph)
-    Engine3.EVENT_BUS.subscribe(SceneGraphModificationEvent.class, (event -> {
+    Engine4.getEventBus().subscribe(SceneGraphModificationEvent.class, (event -> {
       if (!this.entities.containsKey(event.child.getIdentifier())) {
         this.add(event.child);
       }

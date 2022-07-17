@@ -1,6 +1,6 @@
 package engine3.gfx.material;
 
-import engine3.Engine3;
+import engine3.Engine4;
 import engine3.asset.AssetBindable;
 import engine3.asset.api.IAssetReference;
 import engine3.gfx.OpenGL;
@@ -14,7 +14,7 @@ public abstract class Material extends AssetBindable {
 
   @Override
   public void destroy() {
-    Engine3.ASSET_MANAGER.release(this.program);
+    Engine4.getAssetManager().release(this.program);
   }
 
   public final ShaderProgram getProgram() {
@@ -31,6 +31,6 @@ public abstract class Material extends AssetBindable {
   }
 
   protected Material(String program) {
-    this.program = Engine3.ASSET_MANAGER.request(ShaderProgram.class, program);
+    this.program = Engine4.getAssetManager().request(ShaderProgram.class, program);
   }
 }

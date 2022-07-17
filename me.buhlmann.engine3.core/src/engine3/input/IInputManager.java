@@ -87,4 +87,6 @@ public interface IInputManager {
   void publishFrameInputEvents(EventBus bus);
   boolean isKeyPressed(IInputManager.KeyCode key);
   Vector2f getMousePosition();
+
+  boolean isMouseButton1Pressed();
 }
